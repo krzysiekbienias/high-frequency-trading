@@ -1,11 +1,11 @@
 #include "book/order_book.hpp"
 
-bool OrderBook::contains(domain::OrderId id) const {
+bool OrderBook::isLive(domain::OrderId id) const {
     return m_liveIds.find(id) != m_liveIds.end();
 }
 
-bool OrderBook::add(const domain::Order& order) {
-    if (contains(order.orderId)) {
+bool OrderBook::add(const domain::Order &order) {
+    if (isLive(order.orderId)) {
         return false;
     }
 
@@ -25,7 +25,7 @@ std::size_t OrderBook::liveCount() const {
 
 std::size_t OrderBook::buyCount() const {
     std::size_t total = 0;
-    for (const auto& [price, q] : m_buyBook) {
+    for (const auto &[price, q]: m_buyBook) {
         total += q.size();
     }
     return total;
@@ -33,8 +33,71 @@ std::size_t OrderBook::buyCount() const {
 
 std::size_t OrderBook::sellCount() const {
     std::size_t total = 0;
-    for (const auto& [price, q] : m_sellBook) {
+    for (const auto &[price, q]: m_sellBook) {
         total += q.size();
     }
     return total;
+}
+
+domain::Order *OrderBook::getById(domain::OrderId id) {
+    // scan buy side
+    for (auto &[price, q]: m_buyBook) {
+        for (auto &ord: q) {
+            if (ord.orderId == id) {
+                return &ord;
+            }
+        }
+    }
+
+    // scan sell side
+    for (auto &[price, q]: m_sellBook) {
+        for (auto &ord: q) {
+            if (ord.orderId == id) {
+                return &ord;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+bool OrderBook::erase(domain::OrderId id) {
+    // buy side
+    for (auto levelIt = m_buyBook.begin(); levelIt != m_buyBook.end(); ++levelIt) {
+        auto &q = levelIt->second;
+
+        for (auto it = q.begin(); it != q.end(); ++it) {
+            if (it->orderId == id) {
+                q.erase(it);
+
+                // remove empty price level
+                if (q.empty()) {
+                    m_buyBook.erase(levelIt);
+                }
+
+                m_liveIds.erase(id);
+                return true;
+            }
+        }
+    }
+
+    // sell side
+    for (auto levelIt = m_sellBook.begin(); levelIt != m_sellBook.end(); ++levelIt) {
+        auto &q = levelIt->second;
+
+        for (auto it = q.begin(); it != q.end(); ++it) {
+            if (it->orderId == id) {
+                q.erase(it);
+
+                if (q.empty()) {
+                    m_sellBook.erase(levelIt);
+                }
+
+                m_liveIds.erase(id);
+                return true;
+            }
+        }
+    }
+
+    return false;
 }

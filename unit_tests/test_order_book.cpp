@@ -15,37 +15,37 @@ domain::Order makeOrder(domain::OrderId id,
                         const std::string& symbol = "XYZ",
                         domain::Timestamp ts = 0) {
     domain::Order o;
-    o.orderId = id;
-    o.side = side;
-    o.price = priceCents;
-    o.quantity = qty;
+    o.orderId   = id;
+    o.side      = side;
+    o.price     = priceCents;
+    o.quantity  = qty;
     o.orderType = type;
-    o.symbol = symbol;
+    o.symbol    = symbol;
     o.timeStamp = ts;
     return o;
 }
 
 } // namespace
 
-TEST(OrderBookTests, EmptyBook_HasZeroCounts_AndContainsIsFalse) {
+TEST(OrderBookTests, EmptyBook_HasZeroCounts_AndIsLiveIsFalse) {
     OrderBook book;
 
     EXPECT_EQ(book.liveCount(), 0u);
     EXPECT_EQ(book.buyCount(), 0u);
     EXPECT_EQ(book.sellCount(), 0u);
 
-    EXPECT_FALSE(book.contains(1));
-    EXPECT_FALSE(book.contains(123456));
+    EXPECT_FALSE(book.isLive(1));
+    EXPECT_FALSE(book.isLive(123456));
 }
 
 TEST(OrderBookTests, AddBuyOrder_IncreasesBuyAndLiveCounts) {
     OrderBook book;
 
-    auto buy = makeOrder(1, domain::Side::Buy, /*price*/ 10453, /*qty*/ 100);
+    auto buy = makeOrder(1, domain::Side::Buy, 10453, 100);
 
     EXPECT_TRUE(book.add(buy));
 
-    EXPECT_TRUE(book.contains(1));
+    EXPECT_TRUE(book.isLive(1));
     EXPECT_EQ(book.liveCount(), 1u);
     EXPECT_EQ(book.buyCount(), 1u);
     EXPECT_EQ(book.sellCount(), 0u);
@@ -54,11 +54,11 @@ TEST(OrderBookTests, AddBuyOrder_IncreasesBuyAndLiveCounts) {
 TEST(OrderBookTests, AddSellOrder_IncreasesSellAndLiveCounts) {
     OrderBook book;
 
-    auto sell = makeOrder(2, domain::Side::Sell, /*price*/ 10453, /*qty*/ 100);
+    auto sell = makeOrder(2, domain::Side::Sell, 10453, 100);
 
     EXPECT_TRUE(book.add(sell));
 
-    EXPECT_TRUE(book.contains(2));
+    EXPECT_TRUE(book.isLive(2));
     EXPECT_EQ(book.liveCount(), 1u);
     EXPECT_EQ(book.buyCount(), 0u);
     EXPECT_EQ(book.sellCount(), 1u);
@@ -67,7 +67,7 @@ TEST(OrderBookTests, AddSellOrder_IncreasesSellAndLiveCounts) {
 TEST(OrderBookTests, DuplicateOrderId_IsRejected_AndCountsDoNotChange) {
     OrderBook book;
 
-    auto buy1 = makeOrder(7, domain::Side::Buy, 10000, 100);
+    auto buy1          = makeOrder(7, domain::Side::Buy,  10000, 100);
     auto sellDupSameId = makeOrder(7, domain::Side::Sell, 11000, 200);
 
     EXPECT_TRUE(book.add(buy1));
@@ -81,7 +81,7 @@ TEST(OrderBookTests, DuplicateOrderId_IsRejected_AndCountsDoNotChange) {
     EXPECT_EQ(book.liveCount(), liveBefore);
     EXPECT_EQ(book.buyCount(), buyBefore);
     EXPECT_EQ(book.sellCount(), sellBefore);
-    EXPECT_TRUE(book.contains(7));
+    EXPECT_TRUE(book.isLive(7));
 }
 
 TEST(OrderBookTests, TwoBuyOrders_SamePriceLevel_CountsTwo) {
@@ -115,8 +115,8 @@ TEST(OrderBookTests, TwoBuyOrders_DifferentPriceLevels_CountsTwo) {
 TEST(OrderBookTests, MixedSides_CountsSplitCorrectly) {
     OrderBook book;
 
-    auto b1 = makeOrder(1, domain::Side::Buy, 10000, 10);
-    auto b2 = makeOrder(2, domain::Side::Buy,  9900, 20);
+    auto b1 = makeOrder(1, domain::Side::Buy,  10000, 10);
+    auto b2 = makeOrder(2, domain::Side::Buy,   9900, 20);
     auto s1 = makeOrder(3, domain::Side::Sell, 10100, 30);
     auto s2 = makeOrder(4, domain::Side::Sell, 10200, 40);
 
@@ -129,8 +129,138 @@ TEST(OrderBookTests, MixedSides_CountsSplitCorrectly) {
     EXPECT_EQ(book.buyCount(), 2u);
     EXPECT_EQ(book.sellCount(), 2u);
 
-    EXPECT_TRUE(book.contains(1));
-    EXPECT_TRUE(book.contains(2));
-    EXPECT_TRUE(book.contains(3));
-    EXPECT_TRUE(book.contains(4));
+    EXPECT_TRUE(book.isLive(1));
+    EXPECT_TRUE(book.isLive(2));
+    EXPECT_TRUE(book.isLive(3));
+    EXPECT_TRUE(book.isLive(4));
+}
+
+// -------------------- New tests for getById + erase --------------------
+
+TEST(OrderBookLookupEraseTests, GetById_ReturnsNullptr_WhenNotFound) {
+    OrderBook book;
+
+    EXPECT_EQ(book.getById(1), nullptr);
+    EXPECT_EQ(book.getById(999), nullptr);
+}
+
+TEST(OrderBookLookupEraseTests, GetById_FindsBuyOrder_AndAllowsInPlaceUpdate) {
+    OrderBook book;
+
+    EXPECT_TRUE(book.add(makeOrder(10, domain::Side::Buy, 10000, 100,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+
+    auto* p = book.getById(10);
+    ASSERT_NE(p, nullptr);
+
+    EXPECT_EQ(p->orderId, 10);
+    EXPECT_EQ(p->symbol, "XYZ");
+    EXPECT_EQ(p->price, 10000);
+    EXPECT_EQ(p->quantity, 100);
+
+    // in-place modification through pointer
+    p->quantity = 60;
+
+    auto* p2 = book.getById(10);
+    ASSERT_NE(p2, nullptr);
+    EXPECT_EQ(p2->quantity, 60);
+}
+
+TEST(OrderBookLookupEraseTests, GetById_FindsSellOrder) {
+    OrderBook book;
+
+    EXPECT_TRUE(book.add(makeOrder(11, domain::Side::Sell, 10100, 50,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+
+    auto* p = book.getById(11);
+    ASSERT_NE(p, nullptr);
+    EXPECT_EQ(p->side, domain::Side::Sell);
+    EXPECT_EQ(p->price, 10100);
+    EXPECT_EQ(p->quantity, 50);
+}
+
+TEST(OrderBookLookupEraseTests, Erase_ReturnsFalse_WhenNotFound) {
+    OrderBook book;
+
+    EXPECT_FALSE(book.erase(123));
+    EXPECT_EQ(book.liveCount(), 0u);
+    EXPECT_EQ(book.buyCount(), 0u);
+    EXPECT_EQ(book.sellCount(), 0u);
+}
+
+TEST(OrderBookLookupEraseTests, Erase_RemovesBuyOrder_AndUpdatesCountsAndLiveIds) {
+    OrderBook book;
+
+    EXPECT_TRUE(book.add(makeOrder(1, domain::Side::Buy, 10000, 100,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+    EXPECT_TRUE(book.add(makeOrder(2, domain::Side::Buy, 10000, 100,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+
+    EXPECT_EQ(book.liveCount(), 2u);
+    EXPECT_EQ(book.buyCount(), 2u);
+
+    EXPECT_TRUE(book.erase(1));
+
+    EXPECT_EQ(book.getById(1), nullptr);
+    EXPECT_NE(book.getById(2), nullptr);
+
+    EXPECT_EQ(book.liveCount(), 1u);
+    EXPECT_EQ(book.buyCount(), 1u);
+    EXPECT_EQ(book.sellCount(), 0u);
+
+    EXPECT_FALSE(book.isLive(1));
+    EXPECT_TRUE(book.isLive(2));
+}
+
+TEST(OrderBookLookupEraseTests, Erase_RemovesSellOrder_AndUpdatesCounts) {
+    OrderBook book;
+
+    EXPECT_TRUE(book.add(makeOrder(3, domain::Side::Sell, 10100, 10,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+    EXPECT_EQ(book.liveCount(), 1u);
+    EXPECT_EQ(book.sellCount(), 1u);
+
+    EXPECT_TRUE(book.erase(3));
+
+    EXPECT_EQ(book.getById(3), nullptr);
+    EXPECT_EQ(book.liveCount(), 0u);
+    EXPECT_EQ(book.sellCount(), 0u);
+    EXPECT_FALSE(book.isLive(3));
+}
+
+TEST(OrderBookLookupEraseTests, Erase_RemovesPriceLevel_WhenQueueBecomesEmpty) {
+    OrderBook book;
+
+    EXPECT_TRUE(book.add(makeOrder(7, domain::Side::Buy, 12345, 10,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+    EXPECT_EQ(book.buyCount(), 1u);
+
+    EXPECT_TRUE(book.erase(7));
+    EXPECT_EQ(book.buyCount(), 0u);
+    EXPECT_EQ(book.getById(7), nullptr);
+    EXPECT_EQ(book.liveCount(), 0u);
+}
+
+TEST(OrderBookLookupEraseTests, Erase_DoesNotAffectOtherSide) {
+    OrderBook book;
+
+    EXPECT_TRUE(book.add(makeOrder(1, domain::Side::Buy, 10000, 100,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+    EXPECT_TRUE(book.add(makeOrder(2, domain::Side::Sell, 10100, 100,
+                                   domain::OrderType::Limit, "XYZ", 1)));
+
+    EXPECT_EQ(book.liveCount(), 2u);
+    EXPECT_EQ(book.buyCount(), 1u);
+    EXPECT_EQ(book.sellCount(), 1u);
+
+    EXPECT_TRUE(book.erase(1));
+
+    EXPECT_EQ(book.liveCount(), 1u);
+    EXPECT_EQ(book.buyCount(), 0u);
+    EXPECT_EQ(book.sellCount(), 1u);
+
+    EXPECT_EQ(book.getById(1), nullptr);
+    EXPECT_NE(book.getById(2), nullptr);
+    EXPECT_FALSE(book.isLive(1));
+    EXPECT_TRUE(book.isLive(2));
 }

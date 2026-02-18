@@ -11,7 +11,7 @@
 class OrderBook {
 public:
     // Check if an orderId is already live (duplicate prevention)
-    bool contains(domain::OrderId id) const;
+    bool isLive(domain::OrderId id) const;
 
     // Try to add a new order. Returns false if duplicate orderId.
     bool add(const domain::Order& order);
@@ -20,6 +20,9 @@ public:
     std::size_t liveCount() const;
     std::size_t buyCount() const;
     std::size_t sellCount() const;
+
+    domain::Order* getById(domain::OrderId id);
+    bool erase(domain::OrderId id);
 
 private:
     using OrderQueue = std::deque<domain::Order>;
