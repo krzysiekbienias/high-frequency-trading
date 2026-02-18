@@ -17,6 +17,7 @@ add_library(core_lib STATIC
         src/core_lib.cpp
         src/book/order_book.cpp
         src/engine/new.cpp
+        src/engine/amend.cpp
         # add more .cpp here as project grows
 )
 

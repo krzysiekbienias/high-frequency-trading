@@ -5,7 +5,8 @@
 
 #include <string>
 
-struct NewCommandResult {
+struct NewCommandResponse {
+    //only for store result of the command
     domain::OrderId orderId{};
     bool accepted{false};
 
@@ -19,10 +20,10 @@ class NewCommandHandler {
 public:
     explicit NewCommandHandler(OrderBook& book);
 
-    NewCommandResult execute(const domain::Order& order) const;
+    NewCommandResponse execute(const domain::Order& order) const;
 
     // helper to format exactly as required
-    static std::string format(const NewCommandResult& r);
+    static std::string format(const NewCommandResponse& r);
 
 private:
     bool isValidNew(const domain::Order& order) const;

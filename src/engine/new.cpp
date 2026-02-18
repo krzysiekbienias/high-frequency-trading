@@ -29,8 +29,8 @@ bool NewCommandHandler::isValidNew(const domain::Order& o) const {
     return o.price > 0;
 }
 
-NewCommandResult NewCommandHandler::execute(const domain::Order& order) const {
-    NewCommandResult r;
+NewCommandResponse NewCommandHandler::execute(const domain::Order& order) const {
+    NewCommandResponse r;
     r.orderId = order.orderId;
 
     // 1) validate fields
@@ -50,7 +50,7 @@ NewCommandResult NewCommandHandler::execute(const domain::Order& order) const {
     return r;
 }
 
-std::string NewCommandHandler::format(const NewCommandResult& r) {
+std::string NewCommandHandler::format(const NewCommandResponse& r) {
     std::ostringstream oss;
     if (r.accepted) {
         oss << r.orderId << " - Accept";

@@ -35,7 +35,7 @@ TEST(NewCommandTests, AcceptsValidLimitOrder_AndAddsToBook) {
 
     EXPECT_TRUE(r.accepted);
     EXPECT_EQ(book.liveCount(), 1u);
-    EXPECT_TRUE(book.contains(2));
+    EXPECT_TRUE(book.isLive(2));
 }
 
 TEST(NewCommandTests, RejectsDuplicateOrderId) {
@@ -109,13 +109,13 @@ TEST(NewCommandTests, RejectsNonPositiveQuantity) {
 }
 
 TEST(NewCommandTests, FormatMatchesSpec) {
-    NewCommandResult ok;
+    NewCommandResponse ok;
     ok.orderId = 2;
     ok.accepted = true;
 
     EXPECT_EQ(NewCommandHandler::format(ok), "2 - Accept");
 
-    NewCommandResult bad;
+    NewCommandResponse bad;
     bad.orderId = 2;
     bad.accepted = false;
 
