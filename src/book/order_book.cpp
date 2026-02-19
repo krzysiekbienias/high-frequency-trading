@@ -101,3 +101,38 @@ bool OrderBook::erase(domain::OrderId id) {
 
     return false;
 }
+
+
+void OrderBook::dump(std::ostream& os) const {
+    os << "=== ORDER BOOK DUMP ===\n";
+
+    os << "BUY (best -> worst)\n";
+    if (m_buyBook.empty()) {
+        os << "  <empty>\n";
+    } else {
+        for (const auto& [price, q] : m_buyBook) {
+            os << "  price=";
+            domain::printPrice(os, price);
+            os << " | count=" << q.size() << "\n";
+            for (const auto& o : q) {
+                os << "    " << o << "\n";
+            }
+        }
+    }
+
+    os << "SELL (best -> worst)\n";
+    if (m_sellBook.empty()) {
+        os << "  <empty>\n";
+    } else {
+        for (const auto& [price, q] : m_sellBook) {
+            os << "  price=";
+            domain::printPrice(os, price);
+            os << " | count=" << q.size() << "\n";
+            for (const auto& o : q) {
+                os << "    " << o << "\n";
+            }
+        }
+    }
+
+    os << "========================\n";
+}

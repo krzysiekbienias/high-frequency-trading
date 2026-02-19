@@ -24,6 +24,10 @@ public:
     domain::Order* getById(domain::OrderId id);
     bool erase(domain::OrderId id);
 
+    void dump(std::ostream& os) const;
+
+
+
 private:
     using OrderQueue = std::deque<domain::Order>;
 
