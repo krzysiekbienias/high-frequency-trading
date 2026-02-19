@@ -21,6 +21,7 @@ add_library(core_lib STATIC
         src/engine/cancel.cpp
         src/parser/tokenize.cpp
         src/parser/fields_parser.cpp
+        src/parser/commands_parser.cpp
         # add more .cpp here as project grows
 )
 
