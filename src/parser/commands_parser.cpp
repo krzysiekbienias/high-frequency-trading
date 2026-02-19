@@ -40,7 +40,7 @@ static std::optional<AmendRequest> parseAmendRequest(const std::vector<std::stri
     if (!ts) return std::nullopt;
 
     //there is no sperwate method to check symbols add later!
-    auto tickerSymbol=tokens[3];
+    std::string tickerSymbol=tokens[3];
 
     auto orderType=parseOrderType(tokens[4]);
     if (!orderType) return std::nullopt;

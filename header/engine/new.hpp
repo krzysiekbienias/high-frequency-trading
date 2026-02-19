@@ -6,7 +6,7 @@
 #include <string>
 
 struct NewCommandResponse {
-    //only for store result of the command
+    //only for store the result of the command
     domain::OrderId orderId{};
     bool accepted{false};
 
