@@ -1,11 +1,47 @@
-### Description
+### Introduction
 
-The goal of this project is to design and implement equity matcher engine which performs buy and sell sides of the order
-book. The matcher receives an input stream consisting of buy and sell orders and after receiving a match command, it
-should attempt to match any outstanding orders at that point on time. The matcher must ensure that buy order with
-highest price is matched with sell order with the lowest price. In case of multiple orders have the same price on given
-side (buy or sell) the matcher should pick order on first come first serve based on time stamp. System allows several
-commands, that consist of following with description below :
+In the stock trading world, the order book is the place where all active orders (both Buy and Sell) are maintained in
+certain priority to match buy and sell orders. Orders (both Buy and Sell Sides) can be of different
+types, for this challenge we consider the following order types:
+
+* **Market**: A Market order is an order to buy or sell a symbol that must be matched at best price on the other side
+    - Market Buy: A Market Buy order specifies a quantity to purchase and is executed immediately against the lowest
+      available sell prices in the order book until the requested quantity is fully filled or no more liquidity is
+      available.
+    - Market Sell: A Market Sell order specifies a quantity to sell and is executed immediately against the highest
+      available buy prices in the order book until the requested quantity is fully filled or no more liquidity is
+      available.
+* A **Limit** order is an order to buy or sell a symbol at a specified price or better. It may be matched immediately if
+  suitable liquidity exists, or it may remain in the order book awaiting future matches.
+    - Limit Buy:A Limit Buy order specifies a maximum price and a quantity to purchase. It is matched immediately
+      against available sell orders priced at or below the specified limit price, following
+      price-time priority.
+      Any unfilled quantity remains in the order book at the specified price.
+    - Limit Sell:
+      A Limit Sell order specifies a minimum price and a quantity to sell.
+      It is matched immediately against available buy orders priced at or above the specified limit price, following
+      price-time priority.
+      Any unfilled quantity remains in the order book at the specified price.
+
+* An **Immediate-or-Cancel (IOC)** order is an order that must be executed immediately, either fully or partially. Any
+  portion of the order that cannot be matched immediately is automatically canceled and does not remain in the order
+  book.
+    - IOC Buy: An IOC Buy order specifies a maximum price and a quantity to purchase. It is matched immediately against
+      available sell orders priced at or below the specified limit price.
+      Any unfilled quantity is canceled immediately.
+    - IOC Sell: An IOC Sell order specifies a minimum price and a quantity to sell. It is matched immediately against
+      available buy orders priced at or above the specified limit price. Any unfilled quantity is canceled immediately.
+
+### Instruction
+
+The goal of this project is to design and implement an equity matcher engine which performs buy and sell sides of the
+order
+book. The matcher receives an input stream consisting of buy and sell orders, and after receiving a match command, it
+should attempt to match any outstanding orders at that point in time. The matcher must ensure that buy order with
+the highest price is matched with the sell order with the lowest price. In case of multiple orders have the same price
+on the given side (buy or sell), the matcher should pick the order on first come, first served based on time stamp.
+System allows several
+commands that consist of the following with the description below:
 
 ### Commands Description
 
@@ -43,7 +79,7 @@ The matcher should output one of the following:
 
 #### Example
 
-Commands are stream like following:
+Commands are stream like the following:
 
 ```
 N,2,00000002,XYZ,L,B,104.53,100 ✅
