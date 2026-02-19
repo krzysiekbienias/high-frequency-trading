@@ -22,6 +22,7 @@ add_library(core_lib STATIC
         src/parser/tokenize.cpp
         src/parser/fields_parser.cpp
         src/parser/commands_parser.cpp
+        src/engine/dispatcher.cpp
         # add more .cpp here as project grows
 )
 
