@@ -10,6 +10,23 @@
 
 class OrderBook {
 public:
+
+    bool hasBuy() const;
+    bool hasSell() const;
+
+    // Best prices (empty => no orders on that side)
+    std::optional<domain::Price> bestBidPrice() const; // highest BUY price
+    std::optional<domain::Price> bestAskPrice() const; // lowest  SELL price
+
+
+    // Access the best (front) order at best price level (FIFO).
+    // Returns nullptr if the side is empty.
+    domain::Order* bestBidOrder(); // BUY: m_buyBook.begin()->second.front()
+    domain::Order* bestAskOrder(); // SELL: m_sellBook.begin()->second.front()
+
+
+
+
     // Check if an orderId is already live (duplicate prevention)
     bool isLive(domain::OrderId id) const;
 

@@ -4,6 +4,49 @@ bool OrderBook::isLive(domain::OrderId id) const {
     return m_liveIds.find(id) != m_liveIds.end();
 }
 
+
+bool OrderBook::hasBuy()const {
+    return !m_buyBook.empty();
+}
+
+bool OrderBook::hasSell() const {
+    return !m_sellBook.empty();
+}
+
+std::optional<domain::Price> OrderBook::bestBidPrice() const {
+    if (hasBuy()) {
+        return m_buyBook.begin()->first;
+    }
+    return std::nullopt;
+}
+
+
+std::optional<domain::Price> OrderBook::bestAskPrice() const {
+    if (hasSell()) {
+        return m_sellBook.begin()->first;
+    }
+    return std::nullopt;
+}
+
+
+domain::Order* OrderBook::bestBidOrder() {
+    if (hasBuy()) {
+        return &m_buyBook.begin()->second.front();
+    }
+    return nullptr;
+}
+
+
+domain::Order* OrderBook::bestAskOrder(){
+    if (hasSell()) {
+        return &m_sellBook.begin()->second.front();
+    }
+    return nullptr;
+}
+
+
+
+
 bool OrderBook::add(const domain::Order &order) {
     if (isLive(order.orderId)) {
         return false;
@@ -106,7 +149,7 @@ bool OrderBook::erase(domain::OrderId id) {
 void OrderBook::dump(std::ostream& os) const {
     os << "=== ORDER BOOK DUMP ===\n";
 
-    os << "BUY (best -> worst)\n";
+    os << "BUY (highest -> lowest)\n";
     if (m_buyBook.empty()) {
         os << "  <empty>\n";
     } else {
@@ -120,7 +163,7 @@ void OrderBook::dump(std::ostream& os) const {
         }
     }
 
-    os << "SELL (best -> worst)\n";
+    os << "SELL (lowest -> highest)\n";
     if (m_sellBook.empty()) {
         os << "  <empty>\n";
     } else {
