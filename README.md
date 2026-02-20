@@ -4,7 +4,7 @@ In the stock trading world, the order book is the place where all active orders 
 certain priority to match buy and sell orders. Orders (both Buy and Sell Sides) can be of different
 types, for this challenge we consider the following order types:
 
-* **Market**: A Market order is an order to buy or sell a symbol that must be matched at best price on the other side
+* **Market**: A Market order is an order to buy or sell a symbol that must be matched at the best price on the other side
     - Market Buy: A Market Buy order specifies a quantity to purchase and is executed immediately against the lowest
       available sell prices in the order book until the requested quantity is fully filled or no more liquidity is
       available.
@@ -35,9 +35,9 @@ types, for this challenge we consider the following order types:
 ## Instruction
 
 The goal of this project is to design and implement an equity matcher engine which performs buy and sell sides of the
-order
-book. The matcher receives an input stream consisting of buy and sell orders, and after receiving a match command, it
-should attempt to match any outstanding orders at that point in time. The matcher must ensure that buy order with
+order book. The matcher receives an input stream consisting of buy and sell orders, and after receiving a match command,
+it
+should attempt to match any outstanding orders at that point in time. The matcher must ensure that the buy order with
 the highest price is matched with the sell order with the lowest price. In case of multiple orders have the same price
 on the given side (buy or sell), the matcher should pick the order on first come, first served based on time stamp.
 System allows several
@@ -53,7 +53,7 @@ commands that consist of the following with the description below:
     * Q(Query)
 
 2. OrderID int
-3. Tiemestamp - integer typically milliseconds since epoch
+3. Timestamp – integer typically milliseconds since epoch
 4. Symbol string Varying length string containing only alphabets
 5. OrderType
     * M(Market), L(Limit), I(IOC)
@@ -61,10 +61,10 @@ commands that consist of the following with the description below:
 7. Price float, with two places of decimal, 0.00 if OrderType is M
 8. Quantity: integer.
 
-### New (N)
+### New (N) 👶
 
 N command means that a new order is being requested to be entered into the matching book. The matcher should reject the
-incoming order on case of duplicate order Id or invalid input fields. The command is described as:
+incoming order in case of duplicate order id or invalid input fields. The command is described as:
 
 #### Input Command
 
@@ -94,17 +94,18 @@ After the new command we should get
 ### Amend (A)
 
 Amend means an existing order is being requested to be updated as per details in this command. A valid amend command
-should have quantity and/or price amended, any other field update should result into error code.
+should have quantity and/or price amended, any other field update should result in error code.
 
 #### Input Command
 
 `A,<OrderID>,<Timestamp>,<Symbol>,<OrderType>,<Side>,<Price>,<Quantity>`
 
-In case of quantity amend down, the amended order should not lose existing priority in the matching book. In all other
-amend requests , the priority of amended order in matching book may vawy according to the latest price and timestamp.
+In case of quantity amended down, the amended order should not lose existing priority in the matching book. In all other
+amended requests, the priority of amended order in a matching book may vary according to the latest price and timestamp.
 Also note that partial amends should be supported. In case of a quantity amend request on a partially executed order, it
-should be accepted. If the quantity in the amend request is less than or equal to the currently matched quantity then
-order should be considered closed. In scenario where order is fully matched or already canceled, new amend requests
+should be accepted. If the quantity in the amended request is less than or equal to the currently matched quantity, then
+ the order should be considered closed. In a scenario where the order is fully matched or already canceled, new amend
+requests
 should be rejected The command is described as
 
 #### Output
@@ -128,7 +129,7 @@ After the new command we should get
 ### Cancel (X)
 
 The X (Cancel) command means an existing order is being requested to be canceled. Also note that partial cancels should
-be supported. In scenarios where order is fully matched or already canceled, new cancel requests should be rejected. The
+be supported. In scenarios where an order is fully matched or already canceled, new cancel requests should be rejected. The
 command is described as :
 
 #### Input
@@ -198,6 +199,23 @@ XYZ|11,L,100,60.90|60.90,100,L,112
 
 Note that, there is no output for the match command `M,00010,ALN` becasue after the match command `M,00010` there are no
 buy or sell orders to be matched
+
+
+### What data structure to choose for holding state of orders in the  book
+To store orders in our book reasonable are following choises:
+
+| Structure           | Match Speed                  | Cancel/Amend | FIFO   | Complexity | Real-World Viability             |
+|---------------------|------------------------------|--------------|--------|------------|----------------------------------|
+| std::priority_queue | 🟢 Fast (O(1))               | 🔴 No        | 🔴 No  | 🟢 Simple  | ❌ Unrealistic                    |
+| std::multiset       | 🟡 Good (O(log n))           | 🟢 Yes       | 🟢 Yes | 🟡 Medium  | ✅ Suitable for many              |
+| map<price, deque>   | 🟢 Good (log n price levels) | 🟢 Yes       | 🟢 Yes | 🔵 Complex | ✅✅ Best for real trading 
+
+We decided to take `map<prive,deque>` It is the solid choise becasue:
+*	Best bid / best ask in $O(1)$ via `begin()` (because the map is always sorted).
+*	Add / remove a price level in $O(log P)$ where `P` = number of distinct price levels.
+*	FIFO at each price is naturally handled by a deque (or list-like structure).
+
+It seems to be the best trade off between complexity and performance. 
 
 ## Manual run (dev_main) + sample command streams
 
