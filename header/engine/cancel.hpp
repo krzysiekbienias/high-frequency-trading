@@ -14,7 +14,7 @@ struct CancelResponse {
     domain::OrderId orderId{};
     bool accepted{false};
 
-    // 101 - invalid cancel details (w specie masz literówkę "amendement", ale kod zostaje 101)
+    // 101 - invalid cancel details
     // 404 - order does not exist
     int rejectCode{101};
     std::string rejectMessage{"Invalid cancel details"};

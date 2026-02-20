@@ -23,6 +23,7 @@ add_library(core_lib STATIC
         src/parser/fields_parser.cpp
         src/parser/commands_parser.cpp
         src/engine/dispatcher.cpp
+        src/engine/match.cpp
         # add more .cpp here as project grows
 )
 

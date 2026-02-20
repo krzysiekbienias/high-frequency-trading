@@ -99,5 +99,6 @@ std::optional<ParsedCommand> parseCommandLine(std::string_view line) {
         return parsedObj;
 
     }
+    return std::nullopt;
 
 }
