@@ -24,7 +24,26 @@ public:
     domain::Order* bestBidOrder(); // BUY: m_buyBook.begin()->second.front()
     domain::Order* bestAskOrder(); // SELL: m_sellBook.begin()->second.front()
 
+    // Consume quantity from the best/front order.
+    // - Decrements qty by matchedQty
+    // - If qty reaches 0: pops it from deque and removes id from m_liveIds
+    // - If price level becomes empty: removes the price level from the map
+    // Precondition: side not empty, matchedQty > 0, matchedQty <= front.qty
+    void consumeBestBid(int matchedQty);
+    void consumeBestAsk(int matchedQty);
 
+
+    //the same set of methods overloading to handle with 'symbol' parameter
+
+    std::optional<domain::Price> bestBidPrice(const std::string& symbol) const;
+    std::optional<domain::Price> bestAskPrice(const std::string& symbol) const;
+
+
+    domain::Order* bestBidOrder(const std::string& symbol);
+    domain::Order* bestAskOrder(const std::string& symbol);
+
+    void consumeBestBid(int matchedQty,const std::string& symbol);
+    void consumeBestAsk(int matchedQty,const std::string& symbol);
 
 
     // Check if an orderId is already live (duplicate prevention)
