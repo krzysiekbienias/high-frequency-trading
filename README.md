@@ -4,7 +4,8 @@ In the stock trading world, the order book is the place where all active orders 
 certain priority to match buy and sell orders. Orders (both Buy and Sell Sides) can be of different
 types, for this challenge we consider the following order types:
 
-* **Market**: A Market order is an order to buy or sell a symbol that must be matched at the best price on the other side
+* **Market**: A Market order is an order to buy or sell a symbol that must be matched at the best price on the other
+  side
     - Market Buy: A Market Buy order specifies a quantity to purchase and is executed immediately against the lowest
       available sell prices in the order book until the requested quantity is fully filled or no more liquidity is
       available.
@@ -104,7 +105,7 @@ In case of quantity amended down, the amended order should not lose existing pri
 amended requests, the priority of amended order in a matching book may vary according to the latest price and timestamp.
 Also note that partial amends should be supported. In case of a quantity amend request on a partially executed order, it
 should be accepted. If the quantity in the amended request is less than or equal to the currently matched quantity, then
- the order should be considered closed. In a scenario where the order is fully matched or already canceled, new amend
+the order should be considered closed. In a scenario where the order is fully matched or already canceled, new amend
 requests
 should be rejected The command is described as
 
@@ -129,7 +130,8 @@ After the new command we should get
 ### Cancel (X)
 
 The X (Cancel) command means an existing order is being requested to be canceled. Also note that partial cancels should
-be supported. In scenarios where an order is fully matched or already canceled, new cancel requests should be rejected. The
+be supported. In scenarios where an order is fully matched or already canceled, new cancel requests should be rejected.
+The
 command is described as :
 
 #### Input
@@ -200,22 +202,62 @@ XYZ|11,L,100,60.90|60.90,100,L,112
 Note that, there is no output for the match command `M,00010,ALN` becasue after the match command `M,00010` there are no
 buy or sell orders to be matched
 
-
 ### What data structure to choose for holding state of orders in the  book
+
 To store orders in our book reasonable are following choises:
 
-| Structure           | Match Speed                  | Cancel/Amend | FIFO   | Complexity | Real-World Viability             |
-|---------------------|------------------------------|--------------|--------|------------|----------------------------------|
-| std::priority_queue | 🟢 Fast (O(1))               | 🔴 No        | 🔴 No  | 🟢 Simple  | ❌ Unrealistic                    |
-| std::multiset       | 🟡 Good (O(log n))           | 🟢 Yes       | 🟢 Yes | 🟡 Medium  | ✅ Suitable for many              |
+| Structure           | Match Speed                  | Cancel/Amend | FIFO   | Complexity | Real-World Viability     |
+|---------------------|------------------------------|--------------|--------|------------|--------------------------|
+| std::priority_queue | 🟢 Fast (O(1))               | 🔴 No        | 🔴 No  | 🟢 Simple  | ❌ Unrealistic            |
+| std::multiset       | 🟡 Good (O(log n))           | 🟢 Yes       | 🟢 Yes | 🟡 Medium  | ✅ Suitable for many      |
 | map<price, deque>   | 🟢 Good (log n price levels) | 🟢 Yes       | 🟢 Yes | 🔵 Complex | ✅✅ Best for real trading 
 
 We decided to take `map<prive,deque>` It is the solid choise becasue:
-*	Best bid / best ask in $O(1)$ via `begin()` (because the map is always sorted).
-*	Add / remove a price level in $O(log P)$ where `P` = number of distinct price levels.
-*	FIFO at each price is naturally handled by a deque (or list-like structure).
 
-It seems to be the best trade off between complexity and performance. 
+* Best bid / best ask in $O(1)$ via `begin()` (because the map is always sorted).
+* Add / remove a price level in $O(log P)$ where `P` = number of distinct price levels.
+* FIFO at each price is naturally handled by a deque (or list-like structure).
+
+It seems to be the best trade off between complexity and performance.
+
+### Performance Considerations 🚩
+
+Even with a `map<Price, deque<Order>>` structure, we may encounter performance pitfalls during the matching phase.
+
+The potential risk ⚠️ arises when we need to perform matching for a specific symbol.
+
+Price-cross-matching itself is efficient because the best bid and the best ask can be accessed directly via
+`map.begin()` ($O(1)$ for top-of-book access).
+
+However, when matching per symbol, the situation becomes more complex.😔
+To find the best order for a given symbol, we must additionally traverse through price levels and potentially scan the
+entire deque at each level until we find a matching symbol.
+
+In the worst case, this may significantly increase time complexity, potentially leading to near $O(n²)$ behavior during
+heavy matching scenarios.
+
+### Future Improvement 💉🚀
+
+A more scalable solution would be to redesign the order book structure to maintain:
+
+```
+unordered_map<Symbol, BookForSymbol>
+```
+
+where each `BookForSymbol` maintains its own:
+
+```
+buyBook  -> map<Price, deque<Order>>
+sellBook -> map<Price, deque<Order>>
+```
+
+This would efficiently restore the top of the book access per symbol and eliminate the need for repeated scans across
+unrelated symbols.
+
+For the time being (MVP version) we intentionally stick with the primary:
+```
+map<Price, deque<Order>>
+```
 
 ## Manual run (dev_main) + sample command streams
 
