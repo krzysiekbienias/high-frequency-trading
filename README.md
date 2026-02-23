@@ -276,7 +276,48 @@ If you build with CLion / CMake into `cmake-build-debug`, run:
 
 ```bash
 ./cmake-build-debug/dev_main testing_commands/commands_part1.txt
+./cmake-build-debug/dev_main testing_commands/commands_for_matching.txt
+```
+## Example
+
+Consider the following state before we decide to perform match 
+
+```
+=== ORDER BOOK DUMP ===
+BUY (highest -> lowest)
+  price=104.65 | count=1
+    Order{id=20, ts=9, sym=XYZ, type=I, side=B, price=104.65, qty=200}
+  price=104.60 | count=2
+    Order{id=1, ts=1, sym=XYZ, type=L, side=B, price=104.60, qty=100}
+    Order{id=2, ts=7, sym=XYZ, type=L, side=B, price=104.60, qty=30}
+SELL (lowest -> highest)
+  price=104.60 | count=1
+    Order{id=12, ts=6, sym=XYZ, type=L, side=S, price=104.60, qty=90}
+  price=104.65 | count=1
+    Order{id=11, ts=5, sym=XYZ, type=L, side=S, price=104.65, qty=60}
+  price=104.70 | count=1
+    Order{id=10, ts=4, sym=XYZ, type=L, side=S, price=104.70, qty=80}
 ```
 
+After run match command we get:
+```
+========================
+XYZ|20,I,90,10460|10460,90,L,12
+XYZ|20,I,60,10465|10465,60,L,11
+========================
+```
 
-
+And then new state of the book is following
+```
+== ORDER BOOK DUMP ===
+BUY (highest -> lowest)
+  price=104.65 | count=1
+    Order{id=20, ts=9, sym=XYZ, type=I, side=B, price=104.65, qty=50}
+  price=104.60 | count=2
+    Order{id=1, ts=1, sym=XYZ, type=L, side=B, price=104.60, qty=100}
+    Order{id=2, ts=7, sym=XYZ, type=L, side=B, price=104.60, qty=30}
+SELL (lowest -> highest)
+  price=104.70 | count=1
+    Order{id=10, ts=4, sym=XYZ, type=L, side=S, price=104.70, qty=80}
+========================
+```
