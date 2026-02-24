@@ -7,13 +7,14 @@
 #include "engine/new.hpp"
 #include "engine/amend.hpp"
 #include "engine/cancel.hpp"
+#include "engine/match.hpp"
 
-// ParsedCommand = one of supported requests
+// ParsedCommand = one of the supported requests
 using ParsedCommand = std::variant<
-    domain::Order, //for new we don't have request becasue new introduct new object (order) and requires all fields
+    domain::Order, //for the new command we don't have a request because new introduce new object (order) and requires all fields
     AmendRequest,
-    CancelRequest
->;
+    CancelRequest,
+    MatchRequest>;
 
 // Main entry: line -> tokenize -> parse fields -> build request
 std::optional<ParsedCommand> parseCommandLine(std::string_view line);

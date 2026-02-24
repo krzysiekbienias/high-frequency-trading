@@ -16,6 +16,7 @@ public:
 
     // Takes a parsed command and returns a formatted output line
     std::string dispatch(const ParsedCommand& cmd);
+    std::vector<std::string>dispatchMatch(const ParsedCommand& cmd);
 
 private:
     OrderBook& m_book;
@@ -23,4 +24,5 @@ private:
     NewCommandHandler   m_new;
     AmendHandler m_amend;
     CancelHandler m_cancel;
+    MatchHandler m_match;
 };

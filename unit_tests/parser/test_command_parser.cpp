@@ -88,3 +88,44 @@ TEST(CommandParserTests, CancelCommand_InvalidField_ReturnsNullopt) {
     EXPECT_FALSE(parseCommandLine("X,2,-1").has_value());      // timestamp >=0
     EXPECT_FALSE(parseCommandLine("X,abc,1").has_value());     // invalid int
 }
+
+
+TEST(CommandParserTests, MatchCommand_MissingTimestamp_ReturnsNullopt) {
+    EXPECT_FALSE(parseCommandLine("M").has_value());
+    EXPECT_FALSE(parseCommandLine("M,").has_value());
+}
+
+TEST(CommandParserTests, MatchCommand_ValidTimestampOnly_ParsesToMatchRequest_AllSymbols) {
+    auto cmd = parseCommandLine("M,00000010");
+    ASSERT_TRUE(cmd.has_value());
+    EXPECT_TRUE(holds<MatchRequest>(*cmd));
+
+    const auto& req = std::get<MatchRequest>(*cmd);
+    EXPECT_EQ(req.timestamp, 10);
+    EXPECT_FALSE(req.symbol.has_value()); // means "match all"
+}
+
+TEST(CommandParserTests, MatchCommand_ValidTimestampAndSymbol_ParsesToMatchRequest_OneSymbol) {
+    auto cmd = parseCommandLine("M,00000010,XYZ");
+    ASSERT_TRUE(cmd.has_value());
+    EXPECT_TRUE(holds<MatchRequest>(*cmd));
+
+    const auto& req = std::get<MatchRequest>(*cmd);
+    EXPECT_EQ(req.timestamp, 10);
+    ASSERT_TRUE(req.symbol.has_value());
+    EXPECT_EQ(*req.symbol, "XYZ");
+}
+
+TEST(CommandParserTests, MatchCommand_InvalidArity_ReturnsNullopt) {
+    EXPECT_FALSE(parseCommandLine("M,00000010,XYZ,EXTRA").has_value());
+    EXPECT_FALSE(parseCommandLine("M,00000010,XYZ,").has_value());
+}
+
+TEST(CommandParserTests, MatchCommand_InvalidTimestamp_ReturnsNullopt) {
+    EXPECT_FALSE(parseCommandLine("M,-1").has_value());      // timestamp >= 0
+    EXPECT_FALSE(parseCommandLine("M,abc").has_value());     // not an int
+}
+
+TEST(CommandParserTests, MatchCommand_EmptySymbol_ReturnsNullopt) {
+    EXPECT_FALSE(parseCommandLine("M,00000010,").has_value()); // symbol cannot be empty
+}

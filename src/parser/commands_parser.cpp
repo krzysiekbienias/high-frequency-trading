@@ -69,6 +69,21 @@ static std::optional<CancelRequest> parseCancelRequest(const std::vector<std::st
     return CancelRequest(*id,*ts);
 }
 
+static std::optional<MatchRequest> parseMatchRequest(const std::vector<std::string> & tokens) {
+    if (tokens.size()==2) {
+        auto ts=parseTimestamp(tokens[1]);
+        if (!ts ) return std::nullopt;
+        return MatchRequest(*ts);
+    }
+    if (tokens.size()==3) {
+        auto ts=parseTimestamp(tokens[1]);
+        auto symbol=tokens[2];
+        if (!ts || symbol.empty()) return std::nullopt;
+        return MatchRequest(*ts,symbol);
+    }
+    return std::nullopt;
+
+}
 
 
 std::optional<ParsedCommand> parseCommandLine(std::string_view line) {
@@ -77,28 +92,33 @@ std::optional<ParsedCommand> parseCommandLine(std::string_view line) {
     if (tokens.empty() || tokens[0].empty()) return std::nullopt;
 
     char commandSymbol=tokens[0][0];
-    if (commandSymbol!= 'N' && commandSymbol!='A' && commandSymbol!='X' ) {
+    if (commandSymbol!= 'N' && commandSymbol!='A' && commandSymbol!='X' && commandSymbol!='M') {
         return std::nullopt;
     }
-    if (commandSymbol=='N') {
-        if (tokens.size()!=8) return std::nullopt;
-        parsedObj=parseNew(tokens);
-        return parsedObj;
-
+    switch (commandSymbol) {
+        case 'N': {
+            if (tokens.size() != 8) return std::nullopt;
+            parsedObj = parseNew(tokens);
+            return parsedObj;
+        }
+        case 'A': {
+            if (tokens.size() != 8) return std::nullopt;
+            parsedObj = parseAmendRequest(tokens);
+            return parsedObj;
+        }
+        case 'X': {
+            if (tokens.size() != 3) return std::nullopt;
+            parsedObj = parseCancelRequest(tokens);
+            return parsedObj;
+        }
+        case 'M': {
+            // keep your correct size check here, e.g.:
+            // if (tokens.size() != 2 && tokens.size() != 3) return std::nullopt;
+            parsedObj = parseMatchRequest(tokens);
+            return parsedObj;
+        }
+        default:
+            return std::nullopt; // logically unreachable, but keeps compiler/IDE happy
     }
-    if (commandSymbol=='A') {
-        if (tokens.size()!=8) return std::nullopt;
-        parsedObj=parseAmendRequest(tokens);
-        return parsedObj;
-
-    }
-
-    if (commandSymbol=='X') {
-        if (tokens.size()!=3) return std::nullopt;
-        parsedObj=parseCancelRequest(tokens);
-        return parsedObj;
-
-    }
-    return std::nullopt;
 
 }
