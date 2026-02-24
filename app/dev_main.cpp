@@ -10,7 +10,6 @@
 int main(int argc, char** argv) {
     OrderBook book;
     CommandDispatcher dispatcher(book);
-    MatchHandler matcher(book);
 
     std::ifstream file;
     std::istream* in = &std::cin;
@@ -28,35 +27,6 @@ int main(int argc, char** argv) {
     while (std::getline(*in, line)) {
         if (line.empty()) continue;
 
-        // DEV shortcut: manual match
-        // usage:
-        //   :m            -> match all
-        //   :m XYZ        -> match only XYZ
-        if (line.rfind(":m", 0) == 0) {
-            std::istringstream iss(line);
-            std::string cmd;
-            std::string sym;
-            iss >> cmd;      // ":m"
-            iss >> sym;      // optional symbol
-
-            MatchRequest req;
-            req.timestamp = 0; // dev-only; later: parse real timestamp
-            if (!sym.empty()) req.symbol = sym;
-            else req.symbol = std::nullopt;
-
-            auto resp = matcher.execute(req);
-            auto lines = MatchHandler::format(resp);
-
-            for (const auto& s : lines) {
-                std::cout << s << "\n";
-            }
-
-            book.dump(std::cout);
-            continue;
-        }
-
-
-
         if (line == "exit" || line == "quit") break;
 
         auto parsed = parseCommandLine(line);
@@ -65,9 +35,17 @@ int main(int argc, char** argv) {
             continue;
         }
 
-        const std::string out = dispatcher.dispatch(*parsed);
-        if (!out.empty()) {
-            std::cout << out << "\n";
+        // Match returns many lines, other commands return a single line
+        if (std::holds_alternative<MatchRequest>(*parsed)) {
+            const auto outs = dispatcher.dispatchMatch(*parsed);
+            for (const auto& s : outs) {
+                if (!s.empty()) std::cout << s << "\n";
+            }
+        } else {
+            const std::string out = dispatcher.dispatch(*parsed);
+            if (!out.empty()) {
+                std::cout << out << "\n";
+            }
         }
 
         book.dump(std::cout);
