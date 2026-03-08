@@ -166,7 +166,7 @@ for all symbols in alphabetical order the command is described by one of the fol
 #### Input
 
 * `M,<Timestamp>`
-* `M,<Timestamp>,<Symbol>`
+* `M,<Timestamp>,<Symbol>`  
   The matching result has three components which must be seperated by a pipe (`|`):
 * `Symbol` This represents the matched symbol
 * `MatchedBuy` This represents the information of matched buy. It should have:  
@@ -202,9 +202,55 @@ XYZ|11,L,100,60.90|60.90,100,L,112
 Note that, there is no output for the match command `M,00010,ALN` becasue after the match command `M,00010` there are no
 buy or sell orders to be matched
 
-### What data structure to choose for holding state of orders in the  book
+### Query(Q)
 
-To store orders in our book reasonable are following choises:
+The Query(Q) is a request to print the state of a matching book. `Symbol` and `Timestamp` are optional parameters. If
+only symbol is specified would mean the state of the matching book should be printed for the given symbol. Of only timestamp
+is specified would mean the state of the matching books should be printed. if no optional parameters are specified, then
+matcher should print the state of the matching books as of now for all symbols in alphabetical order. The command is
+described by one of the following formats:
+* `Q`
+* `Q,<Symbol>`
+* `Q,<Timestamp>`
+* `Q,<Timestamp>,<Symbol>`
+* `Q,<Symbol>,<Timestamp>`
+
+The state of a matching book should be described by the following three components which must be seperated by pipe (`|`)
+
+* `Symbol` This represents the matched symbol
+* `BuyState` This represents the information of matched buy. It should have:  
+  `<OrderID>,<OrderType>,<Buy Qty>,<Buy Price>` format. If there are no corresponding buy orders this field should be blank
+* `SellState` This represents the information of matched sell. It should have:  
+  `<Sell Price>,<Sell Qty>,<OrderType>,<OrderID>` If there are no corresponding buy orders this field should be blank
+The matcher should output the top five buy and sell entries as the state of the matching book for the given available symbols in the following format
+
+`<Symbol>|<MatchedBuy>|<SellState>`
+In case of Market orders, price should be pronted as $0.00$
+
+#### Example 
+
+```
+N,1,00000001,ALN,L,B,60.90,100
+N,13,00000002,ALN,L,B,60.90,100
+N,10,00000003,ALN,L,S,60.90,100
+N,12,00000004,ALN,L,S,60.90,100
+N,11,00000005,ALB,L,S,60.90,100
+N,14,00000006,ALB,L,S,62.90,101
+N,16,00000007,ALB,L,S,63.90,102
+N,18,00000008,ALB,L,S,64.90,103
+N,20,00000009,ALB,L,S,65.90,104
+Q,00000003
+Q,ALB,
+Q,ALN,00000002
+Q,00000002,ALN
+Q
+```
+
+The matcher should print the following:
+
+
+### What data structure to choose for holding state of orders in the  book
+To store orders in our book reasonable are the following choices:
 
 | Structure           | Match Speed                  | Cancel/Amend | FIFO   | Complexity | Real-World Viability     |
 |---------------------|------------------------------|--------------|--------|------------|--------------------------|
@@ -255,6 +301,7 @@ This would efficiently restore the top of the book access per symbol and elimina
 unrelated symbols.
 
 For the time being (MVP version) we intentionally stick with the primary:
+
 ```
 map<Price, deque<Order>>
 ```
@@ -278,9 +325,10 @@ If you build with CLion / CMake into `cmake-build-debug`, run:
 ./cmake-build-debug/dev_main testing_commands/commands_part1.txt
 ./cmake-build-debug/dev_main testing_commands/commands_for_matching.txt
 ```
+
 ## Example
 
-Consider the following state before we decide to perform match 
+Consider the following state before we decide to perform match
 
 ```
 === ORDER BOOK DUMP ===
@@ -300,6 +348,7 @@ SELL (lowest -> highest)
 ```
 
 After run match command we get:
+
 ```
 ========================
 XYZ|20,I,90,10460|10460,90,L,12
@@ -308,6 +357,7 @@ XYZ|20,I,60,10465|10465,60,L,11
 ```
 
 And then new state of the book is following
+
 ```
 == ORDER BOOK DUMP ===
 BUY (highest -> lowest)

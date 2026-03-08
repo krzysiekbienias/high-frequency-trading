@@ -2,11 +2,11 @@
 #include <iostream>
 #include <string>
 
+#include <sstream>
 #include "book/order_book.hpp"
 #include "engine/dispatcher.hpp"
 #include "engine/match.hpp"
 #include "parser/commands_parser.hpp"  // albo parser/commands_parser.hpp
-#include <sstream>
 int main(int argc, char** argv) {
     OrderBook book;
     CommandDispatcher dispatcher(book);
@@ -25,9 +25,11 @@ int main(int argc, char** argv) {
 
     std::string line;
     while (std::getline(*in, line)) {
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
 
-        if (line == "exit" || line == "quit") break;
+        if (line == "exit" || line == "quit")
+            break;
 
         auto parsed = parseCommandLine(line);
         if (!parsed) {
@@ -39,7 +41,8 @@ int main(int argc, char** argv) {
         if (std::holds_alternative<MatchRequest>(*parsed)) {
             const auto outs = dispatcher.dispatchMatch(*parsed);
             for (const auto& s : outs) {
-                if (!s.empty()) std::cout << s << "\n";
+                if (!s.empty())
+                    std::cout << s << "\n";
             }
         } else {
             const std::string out = dispatcher.dispatch(*parsed);

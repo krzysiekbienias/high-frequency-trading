@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "engine/cancel.hpp"
 #include "book/order_book.hpp"
 #include "domain/order.hpp"
+#include "engine/cancel.hpp"
 
 namespace {
 
@@ -14,12 +14,12 @@ domain::Order makeOrder(domain::OrderId id,
                         const std::string& symbol = "XYZ",
                         domain::Timestamp ts = 0) {
     domain::Order o;
-    o.orderId   = id;
-    o.side      = side;
-    o.price     = priceCents;
-    o.quantity  = qty;
+    o.orderId = id;
+    o.side = side;
+    o.price = priceCents;
+    o.quantity = qty;
     o.orderType = type;
-    o.symbol    = symbol;
+    o.symbol = symbol;
     o.timeStamp = ts;
     return o;
 }
@@ -31,7 +31,7 @@ CancelRequest makeCancel(domain::OrderId id, domain::Timestamp ts) {
     return r;
 }
 
-} // namespace
+}  // namespace
 
 TEST(CancelTests, Reject101_WhenOrderIdInvalid) {
     OrderBook book;

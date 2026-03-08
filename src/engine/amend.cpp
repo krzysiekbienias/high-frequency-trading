@@ -7,31 +7,40 @@ AmendHandler::AmendHandler(OrderBook& book)
     : m_book(book) {}
 
 bool AmendHandler::isAlphaSymbol(const std::string& s) const {
-    if (s.empty()) return false;
+    if (s.empty())
+        return false;
     for (unsigned char ch : s) {
-        if (!std::isalpha(ch)) return false;
+        if (!std::isalpha(ch))
+            return false;
     }
     return true;
 }
 
 bool AmendHandler::isValidAmendRequest(const AmendRequest& req) const {
-    if (req.orderId <= 0) return false;
-    if (req.timeStamp < 0) return false;
-    if (!isAlphaSymbol(req.symbol)) return false;
+    if (req.orderId <= 0)
+        return false;
+    if (req.timeStamp < 0)
+        return false;
+    if (!isAlphaSymbol(req.symbol))
+        return false;
 
     // partial amend supported, ale musi zmieniać przynajmniej price albo qty
-    if (!req.newPrice.has_value() && !req.newQuantity.has_value()) return false;
+    if (!req.newPrice.has_value() && !req.newQuantity.has_value())
+        return false;
 
-    if (req.newQuantity.has_value() && *req.newQuantity <= 0) return false;
+    if (req.newQuantity.has_value() && *req.newQuantity <= 0)
+        return false;
 
     // Reguły ceny zależne od orderType:
     if (req.newPrice.has_value()) {
         if (req.orderType == domain::OrderType::Market) {
             // Market -> price musi być 0
-            if (*req.newPrice != 0) return false;
+            if (*req.newPrice != 0)
+                return false;
         } else {
             // Limit/IOC -> price > 0
-            if (*req.newPrice <= 0) return false;
+            if (*req.newPrice <= 0)
+                return false;
         }
     }
 
@@ -91,13 +100,13 @@ AmendResult AmendHandler::execute(const AmendRequest& req) {
     // 5) reguła priorytetu:
     // - tylko qty down i bez zmiany ceny -> nie tracisz priorytetu (update in place)
     const bool priceChanged = (newPrice != oldPrice);
-    const bool qtyChanged   = (newQty != oldQty);
+    const bool qtyChanged = (newQty != oldQty);
     const bool qtyDecreased = (newQty < oldQty);
     const bool onlyQtyDownNoPriceChange = (qtyChanged && qtyDecreased && !priceChanged);
 
     if (onlyQtyDownNoPriceChange) {
         existingOrderPtr->quantity = newQty;
-        existingOrderPtr->timeStamp = req.timeStamp; // timestamp w obiekcie możesz aktualizować albo nie; spec mówi, że priorytet nie ginie
+        existingOrderPtr->timeStamp = req.timeStamp;  // timestamp w obiekcie możesz aktualizować albo nie; spec mówi, że priorytet nie ginie
         res.accepted = true;
         return res;
     }

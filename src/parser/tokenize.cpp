@@ -31,7 +31,7 @@ std::vector<std::string> tokenize(std::string_view line) {
             tokenView = trimView(tokenView);
 
             out.emplace_back(tokenView);
-            start = i + 1; // skip comma
+            start = i + 1;  // skip comma
         }
     }
 

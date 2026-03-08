@@ -1,7 +1,7 @@
 #pragma once
 
-#include "domain/order.hpp"
 #include "book/order_book.hpp"
+#include "domain/order.hpp"
 
 #include <optional>
 #include <string>
@@ -30,7 +30,7 @@ struct AmendResult {
     // 101 - invalid amendment details
     // 404 - order does not exist
     int rejectCode{101};
-    std::string rejectMessage{"Invalid amendement details"}; // trzymam pisownię jak w specu
+    std::string rejectMessage{"Invalid amendement details"};  // trzymam pisownię jak w specu
 };
 
 class AmendHandler {

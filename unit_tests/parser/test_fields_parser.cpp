@@ -73,7 +73,7 @@ TEST(FieldParsersTests, ParseSide_AcceptsBOrSOnly) {
 
     EXPECT_FALSE(parseSide("").has_value());
     EXPECT_FALSE(parseSide("BUY").has_value());
-    EXPECT_FALSE(parseSide("b").has_value()); // strict for now
+    EXPECT_FALSE(parseSide("b").has_value());  // strict for now
 }
 
 TEST(FieldParsersTests, ParseOrderType_AcceptsMLIOnly) {
@@ -91,11 +91,10 @@ TEST(FieldParsersTests, ParseOrderType_AcceptsMLIOnly) {
 
     EXPECT_FALSE(parseOrderType("").has_value());
     EXPECT_FALSE(parseOrderType("X").has_value());
-    EXPECT_FALSE(parseOrderType("m").has_value()); // strict for now
+    EXPECT_FALSE(parseOrderType("m").has_value());  // strict for now
 }
 
 TEST(FieldParsersTests, ParsePriceCents_AcceptsTwoDecimalsOnly) {
-
     auto p1 = parsePriceCents("104.53");
     ASSERT_TRUE(p1.has_value());
     EXPECT_EQ(*p1, 10453);
@@ -109,23 +108,21 @@ TEST(FieldParsersTests, ParsePriceCents_AcceptsTwoDecimalsOnly) {
     EXPECT_EQ(*p3, 1090);
 }
 
-
 TEST(FieldParsersTests, PriceMustBePositive) {
-    //in spec states that it is allowed for OrderType Market so must be accepted on parsing level.
+    // in spec states that it is allowed for OrderType Market so must be accepted on parsing level.
     auto p1 = parsePriceCents("0.00");
     ASSERT_TRUE(p1.has_value());
-
 }
 
 TEST(FieldParsersTests, ParsePriceCents_RejectsInvalidFormats) {
     EXPECT_FALSE(parsePriceCents("").has_value());
     EXPECT_FALSE(parsePriceCents("104").has_value());
-    EXPECT_FALSE(parsePriceCents("104.5").has_value());     // must be 2 decimals
+    EXPECT_FALSE(parsePriceCents("104.5").has_value());  // must be 2 decimals
     EXPECT_FALSE(parsePriceCents("104.530").has_value());
     EXPECT_FALSE(parsePriceCents("104.").has_value());
     EXPECT_FALSE(parsePriceCents(".53").has_value());
     EXPECT_FALSE(parsePriceCents("10,53").has_value());
     EXPECT_FALSE(parsePriceCents("10.5a").has_value());
-    EXPECT_FALSE(parsePriceCents("-1.00").has_value());     // decide: reject negatives
-    EXPECT_FALSE(parsePriceCents(" 1.00 ").has_value());    // tokenizer trims; keep strict here
+    EXPECT_FALSE(parsePriceCents("-1.00").has_value());   // decide: reject negatives
+    EXPECT_FALSE(parsePriceCents(" 1.00 ").has_value());  // tokenizer trims; keep strict here
 }

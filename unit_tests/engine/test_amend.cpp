@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "book/order_book.hpp"
-#include "engine/amend.hpp"
 #include "domain/order.hpp"
+#include "engine/amend.hpp"
 
 namespace {
 
@@ -14,13 +14,13 @@ domain::Order makeOrder(domain::OrderId id,
                         domain::Price priceCents,
                         int qty) {
     domain::Order o;
-    o.orderId   = id;
+    o.orderId = id;
     o.timeStamp = ts;
-    o.symbol    = symbol;
+    o.symbol = symbol;
     o.orderType = type;
-    o.side      = side;
-    o.price     = priceCents;
-    o.quantity  = qty;
+    o.side = side;
+    o.price = priceCents;
+    o.quantity = qty;
     return o;
 }
 
@@ -32,17 +32,17 @@ AmendRequest makeAmend(domain::OrderId id,
                        std::optional<domain::Price> newPrice,
                        std::optional<int> newQty) {
     AmendRequest r;
-    r.orderId      = id;
-    r.timeStamp    = ts;
-    r.symbol       = symbol;
-    r.orderType    = type;
-    r.side         = side;
-    r.newPrice     = newPrice;
-    r.newQuantity  = newQty;
+    r.orderId = id;
+    r.timeStamp = ts;
+    r.symbol = symbol;
+    r.orderType = type;
+    r.side = side;
+    r.newPrice = newPrice;
+    r.newQuantity = newQty;
     return r;
 }
 
-} // namespace
+}  // namespace
 
 TEST(AmendTests, Reject404_WhenOrderDoesNotExist) {
     OrderBook book;
@@ -50,7 +50,7 @@ TEST(AmendTests, Reject404_WhenOrderDoesNotExist) {
 
     auto req = makeAmend(42, 10, "XYZ", domain::OrderType::Limit, domain::Side::Buy,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  90);
+                         /*newQty*/ 90);
 
     auto res = amend.execute(req);
 
@@ -68,7 +68,7 @@ TEST(AmendTests, Reject101_WhenNeitherPriceNorQuantityProvided) {
 
     auto req = makeAmend(1, 10, "XYZ", domain::OrderType::Limit, domain::Side::Buy,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  std::nullopt);
+                         /*newQty*/ std::nullopt);
 
     auto res = amend.execute(req);
 
@@ -85,7 +85,7 @@ TEST(AmendTests, Reject101_WhenTryingToChangeSide) {
     // Same id, but side changed -> forbidden
     auto req = makeAmend(2, 10, "XYZ", domain::OrderType::Limit, domain::Side::Sell,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  90);
+                         /*newQty*/ 90);
 
     auto res = amend.execute(req);
 
@@ -103,7 +103,7 @@ TEST(AmendTests, Reject101_WhenTryingToChangeOrderType) {
     // Type changed -> forbidden
     auto req = makeAmend(3, 10, "XYZ", domain::OrderType::IOC, domain::Side::Buy,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  90);
+                         /*newQty*/ 90);
 
     auto res = amend.execute(req);
 
@@ -120,7 +120,7 @@ TEST(AmendTests, Reject101_WhenTryingToChangeSymbol) {
     // Symbol changed -> forbidden
     auto req = makeAmend(4, 10, "ABC", domain::OrderType::Limit, domain::Side::Buy,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  90);
+                         /*newQty*/ 90);
 
     auto res = amend.execute(req);
 
@@ -136,7 +136,7 @@ TEST(AmendTests, Reject101_WhenNewQuantityIsNonPositive) {
 
     auto req = makeAmend(5, 10, "XYZ", domain::OrderType::Limit, domain::Side::Buy,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  0);
+                         /*newQty*/ 0);
 
     auto res = amend.execute(req);
 
@@ -158,7 +158,7 @@ TEST(AmendTests, Accept_PartialAmendQuantityDown_UpdatesInPlaceAndKeepsPointer) 
     // qty down only, no price change -> should be in-place
     auto req = makeAmend(10, 20, "XYZ", domain::OrderType::Limit, domain::Side::Buy,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  60);
+                         /*newQty*/ 60);
 
     auto res = amend.execute(req);
 
@@ -182,7 +182,7 @@ TEST(AmendTests, Accept_PartialAmendPriceOnly_UpdatesOrderPrice) {
 
     auto req = makeAmend(11, 20, "XYZ", domain::OrderType::Limit, domain::Side::Buy,
                          /*newPrice*/ 10100,
-                         /*newQty*/  std::nullopt);
+                         /*newQty*/ std::nullopt);
 
     auto res = amend.execute(req);
 
@@ -206,7 +206,7 @@ TEST(AmendTests, Accept_QuantityUp_MayReinsertAndStillValidState) {
     // qty up -> "other amend" -> your handler likely does erase + add
     auto req = makeAmend(12, 20, "XYZ", domain::OrderType::Limit, domain::Side::Buy,
                          /*newPrice*/ std::nullopt,
-                         /*newQty*/  150);
+                         /*newQty*/ 150);
 
     auto res = amend.execute(req);
     EXPECT_TRUE(res.accepted);

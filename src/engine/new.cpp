@@ -1,24 +1,30 @@
 #include "engine/new.hpp"
 
-#include <cctype>     // std::isalpha
+#include <cctype>  // std::isalpha
 #include <sstream>
 
 NewCommandHandler::NewCommandHandler(OrderBook& book)
     : m_book(book) {}
 
 bool NewCommandHandler::isAlphaSymbol(const std::string& s) {
-    if (s.empty()) return false;
+    if (s.empty())
+        return false;
     for (unsigned char ch : s) {
-        if (!std::isalpha(ch)) return false;
+        if (!std::isalpha(ch))
+            return false;
     }
     return true;
 }
 
 bool NewCommandHandler::isValidNew(const domain::Order& o) const {
-    if (o.orderId <= 0) return false;
-    if (o.timeStamp < 0) return false;
-    if (o.quantity <= 0) return false;
-    if (!isAlphaSymbol(o.symbol)) return false;
+    if (o.orderId <= 0)
+        return false;
+    if (o.timeStamp < 0)
+        return false;
+    if (o.quantity <= 0)
+        return false;
+    if (!isAlphaSymbol(o.symbol))
+        return false;
 
     // Market: price must be 0
     if (o.orderType == domain::OrderType::Market) {
@@ -36,13 +42,13 @@ NewCommandResponse NewCommandHandler::execute(const domain::Order& order) const 
     // 1) validate fields
     if (!isValidNew(order)) {
         r.accepted = false;
-        return r; // reject 303
+        return r;  // reject 303
     }
 
     // 2) reject duplicates
     if (!m_book.add(order)) {
         r.accepted = false;
-        return r; // today: duplicate maps to same 303
+        return r;  // today: duplicate maps to same 303
     }
 
     // 3) accept

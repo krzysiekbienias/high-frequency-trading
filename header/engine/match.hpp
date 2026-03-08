@@ -5,7 +5,6 @@
 #include <optional>
 #include <string>
 
-
 struct MatchRequest {
     domain::Timestamp timestamp{};
     std::optional<std::string> symbol;  // if empty → match all symbols
@@ -24,11 +23,9 @@ struct TradeEvent {
     domain::Price executionPrice{};
 };
 
-
 struct MatchResponse {
     std::vector<TradeEvent> events;
 };
-
 
 class MatchHandler {
 public:
@@ -41,6 +38,4 @@ public:
 
 private:
     OrderBook& m_book;
-
-
 };

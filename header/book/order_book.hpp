@@ -2,27 +2,25 @@
 
 #include "domain/order.hpp"
 
-#include <cstddef>        // std::size_t
+#include <cstddef>  // std::size_t
 #include <deque>
-#include <functional>     // std::greater
+#include <functional>  // std::greater
 #include <map>
 #include <unordered_set>
 
 class OrderBook {
 public:
-
     bool hasBuy() const;
     bool hasSell() const;
 
     // Best prices (empty => no orders on that side)
-    std::optional<domain::Price> bestBidPrice() const; // highest BUY price
-    std::optional<domain::Price> bestAskPrice() const; // lowest  SELL price
-
+    std::optional<domain::Price> bestBidPrice() const;  // highest BUY price
+    std::optional<domain::Price> bestAskPrice() const;  // lowest  SELL price
 
     // Access the best (front) order at best price level (FIFO).
     // Returns nullptr if the side is empty.
-    domain::Order* bestBidOrder(); // BUY: m_buyBook.begin()->second.front()
-    domain::Order* bestAskOrder(); // SELL: m_sellBook.begin()->second.front()
+    domain::Order* bestBidOrder();  // BUY: m_buyBook.begin()->second.front()
+    domain::Order* bestAskOrder();  // SELL: m_sellBook.begin()->second.front()
 
     // Consume quantity from the best/front order.
     // - Decrements qty by matchedQty
@@ -32,19 +30,16 @@ public:
     void consumeBestBid(int matchedQty);
     void consumeBestAsk(int matchedQty);
 
-
-    //the same set of methods overloading to handle with 'symbol' parameter
+    // the same set of methods overloading to handle with 'symbol' parameter
 
     std::optional<domain::Price> bestBidPrice(const std::string& symbol) const;
     std::optional<domain::Price> bestAskPrice(const std::string& symbol) const;
 
-
     domain::Order* bestBidOrder(const std::string& symbol);
     domain::Order* bestAskOrder(const std::string& symbol);
 
-    void consumeBestBid(int matchedQty,const std::string& symbol);
-    void consumeBestAsk(int matchedQty,const std::string& symbol);
-
+    void consumeBestBid(int matchedQty, const std::string& symbol);
+    void consumeBestAsk(int matchedQty, const std::string& symbol);
 
     // Check if an orderId is already live (duplicate prevention)
     bool isLive(domain::OrderId id) const;
@@ -61,8 +56,6 @@ public:
     bool erase(domain::OrderId id);
 
     void dump(std::ostream& os) const;
-
-
 
 private:
     using OrderQueue = std::deque<domain::Order>;

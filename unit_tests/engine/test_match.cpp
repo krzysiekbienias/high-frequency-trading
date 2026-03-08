@@ -3,8 +3,8 @@
 #include <gtest/gtest.h>
 
 #include "book/order_book.hpp"
-#include "engine/match.hpp"
 #include "domain/order.hpp"
+#include "engine/match.hpp"
 
 #include <optional>
 #include <string>
@@ -30,7 +30,7 @@ domain::Order makeOrder(domain::OrderId id,
     return o;
 }
 
-} // namespace
+}  // namespace
 
 // ------------------------- execute() tests -------------------------
 
@@ -135,13 +135,13 @@ TEST(MatchExecuteTests, FIFOWithinSamePriceLevel_IsRespected) {
     EXPECT_EQ(resp.events[1].quantity, 10);
 
     // After matching:
-    EXPECT_FALSE(book.isLive(1)); // fully consumed
-    EXPECT_TRUE(book.isLive(2));  // partially left
-    EXPECT_FALSE(book.isLive(10)); // sell fully consumed
+    EXPECT_FALSE(book.isLive(1));   // fully consumed
+    EXPECT_TRUE(book.isLive(2));    // partially left
+    EXPECT_FALSE(book.isLive(10));  // sell fully consumed
 
     auto* p2 = book.getById(2);
     ASSERT_NE(p2, nullptr);
-    EXPECT_EQ(p2->quantity, 20); // 30 - 10
+    EXPECT_EQ(p2->quantity, 20);  // 30 - 10
 }
 
 TEST(MatchExecuteTests, SymbolFilter_MatchesOnlyThatSymbol_AndLeavesOthersUntouched) {
@@ -225,15 +225,13 @@ TEST(MatchFormatTests, MultipleEvents_PreserveOrder) {
         "ALN",
         1, 10,
         domain::OrderType::Limit, domain::OrderType::Limit,
-        100, 6090
-    });
+        100, 6090});
 
     resp.events.push_back(TradeEvent{
         "XYZ",
         11, 110,
         domain::OrderType::Limit, domain::OrderType::Limit,
-        100, 6090
-    });
+        100, 6090});
 
     auto out = MatchHandler::format(resp);
     ASSERT_EQ(out.size(), 2u);

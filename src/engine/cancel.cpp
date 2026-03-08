@@ -6,8 +6,10 @@ CancelHandler::CancelHandler(OrderBook& book)
     : m_book(book) {}
 
 bool CancelHandler::isValidCancelRequest(const CancelRequest& req) const {
-    if (req.orderId <= 0) return false;
-    if (req.timeStamp < 0) return false;
+    if (req.orderId <= 0)
+        return false;
+    if (req.timeStamp < 0)
+        return false;
     return true;
 }
 

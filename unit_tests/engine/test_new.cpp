@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "book/order_book.hpp"
-#include "engine/new.hpp"
 #include "domain/order.hpp"
+#include "engine/new.hpp"
 
 namespace {
 
@@ -24,7 +24,7 @@ domain::Order makeOrder(domain::OrderId id,
     return o;
 }
 
-} // namespace
+}  // namespace
 
 TEST(NewCommandTests, AcceptsValidLimitOrder_AndAddsToBook) {
     OrderBook book;

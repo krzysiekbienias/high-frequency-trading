@@ -15,19 +15,17 @@ domain::Order makeOrder(domain::OrderId id,
                         const std::string& symbol = "XYZ",
                         domain::Timestamp ts = 0) {
     domain::Order o;
-    o.orderId   = id;
-    o.side      = side;
-    o.price     = priceCents;
-    o.quantity  = qty;
+    o.orderId = id;
+    o.side = side;
+    o.price = priceCents;
+    o.quantity = qty;
     o.orderType = type;
-    o.symbol    = symbol;
+    o.symbol = symbol;
     o.timeStamp = ts;
     return o;
 }
 
-} // namespace
-
-
+}  // namespace
 
 TEST(OrderBookTopTests, HasBuyHasSell_EmptyBook_False) {
     OrderBook book;
@@ -52,14 +50,12 @@ TEST(OrderBookTopTests, HasSellTrue_WhenAnySellExists) {
     EXPECT_TRUE(book.hasSell());
 }
 
-
-
 TEST(OrderBookTopTests, BestBid_ReturnsHighestBuyPrice) {
     OrderBook book;
 
     book.add(makeOrder(1, domain::Side::Buy, 10000, 10));
     book.add(makeOrder(2, domain::Side::Buy, 10100, 10));
-    book.add(makeOrder(3, domain::Side::Buy,  9900, 10));
+    book.add(makeOrder(3, domain::Side::Buy, 9900, 10));
 
     auto bid = book.bestBidPrice();
     ASSERT_TRUE(bid.has_value());
@@ -77,7 +73,6 @@ TEST(OrderBookTopTests, BestAsk_ReturnsLowestSellPrice) {
     ASSERT_TRUE(ask.has_value());
     EXPECT_EQ(*ask, 10450);
 }
-
 
 TEST(OrderBookTopTests, BestBidOrder_ReturnsFrontOrderAtBestBidPrice_FIFO) {
     OrderBook book;
@@ -124,8 +119,6 @@ TEST(OrderBookTopTests, BestBidOrder_EmptySide_ReturnsNullptr) {
     EXPECT_EQ(book.bestAskOrder(), nullptr);
 }
 
-
-
 TEST(OrderBookTests, EmptyBook_HasZeroCounts_AndIsLiveIsFalse) {
     OrderBook book;
 
@@ -166,13 +159,13 @@ TEST(OrderBookTests, AddSellOrder_IncreasesSellAndLiveCounts) {
 TEST(OrderBookTests, DuplicateOrderId_IsRejected_AndCountsDoNotChange) {
     OrderBook book;
 
-    auto buy1          = makeOrder(7, domain::Side::Buy,  10000, 100);
+    auto buy1 = makeOrder(7, domain::Side::Buy, 10000, 100);
     auto sellDupSameId = makeOrder(7, domain::Side::Sell, 11000, 200);
 
     EXPECT_TRUE(book.add(buy1));
 
     const auto liveBefore = book.liveCount();
-    const auto buyBefore  = book.buyCount();
+    const auto buyBefore = book.buyCount();
     const auto sellBefore = book.sellCount();
 
     EXPECT_FALSE(book.add(sellDupSameId));
@@ -214,8 +207,8 @@ TEST(OrderBookTests, TwoBuyOrders_DifferentPriceLevels_CountsTwo) {
 TEST(OrderBookTests, MixedSides_CountsSplitCorrectly) {
     OrderBook book;
 
-    auto b1 = makeOrder(1, domain::Side::Buy,  10000, 10);
-    auto b2 = makeOrder(2, domain::Side::Buy,   9900, 20);
+    auto b1 = makeOrder(1, domain::Side::Buy, 10000, 10);
+    auto b2 = makeOrder(2, domain::Side::Buy, 9900, 20);
     auto s1 = makeOrder(3, domain::Side::Sell, 10100, 30);
     auto s2 = makeOrder(4, domain::Side::Sell, 10200, 40);
 
@@ -363,7 +356,6 @@ TEST(OrderBookLookupEraseTests, Erase_DoesNotAffectOtherSide) {
     EXPECT_FALSE(book.isLive(1));
     EXPECT_TRUE(book.isLive(2));
 }
-
 
 // --- consumeBestBid/consumeBestAsk tests ---
 
@@ -544,8 +536,6 @@ TEST(OrderBookConsumeTests, ConsumeBestAsk_RemovesPriceLevel_WhenQueueBecomesEmp
     EXPECT_EQ(best->orderId, 11);
 }
 
-
-
 // --- bestBidPrice(symbol) tests ---
 
 TEST(OrderBookBestBidPriceBySymbolTests, EmptyBook_ReturnsNullopt) {
@@ -640,9 +630,6 @@ TEST(OrderBookBestAskPriceBySymbolTests, WorksWhenSymbolIsNotAtFrontOfDequeInBes
     auto p = book.bestAskPrice("XYZ");
     ASSERT_TRUE(p.has_value());
     EXPECT_EQ(*p, 10000);
-
-
-
 }
 
 // --- bestBidOrder(symbol) tests ---
@@ -745,7 +732,6 @@ TEST(OrderBookBestAskOrderBySymbolTests, ReturnsFirstMatchingOrderInDequeFIFOWit
     EXPECT_EQ(p->price, 10000);
 }
 
-
 // --- consumeBestBid(qty, symbol) tests ---
 
 TEST(OrderBookConsumeBestBidBySymbolTests, DoesNothing_WhenBookEmpty) {
@@ -763,7 +749,7 @@ TEST(OrderBookConsumeBestBidBySymbolTests, DoesNothing_WhenNoOrderForSymbolExist
     book.add(makeOrder(1, domain::Side::Buy, 10100, 10, domain::OrderType::Limit, "ABC", 1));
     book.add(makeOrder(2, domain::Side::Buy, 10000, 20, domain::OrderType::Limit, "DEF", 2));
 
-    book.consumeBestBid(5, "XYZ"); // symbol not present
+    book.consumeBestBid(5, "XYZ");  // symbol not present
 
     EXPECT_TRUE(book.isLive(1));
     EXPECT_TRUE(book.isLive(2));
@@ -785,7 +771,7 @@ TEST(OrderBookConsumeBestBidBySymbolTests, ConsumesFromBestPriceLevelThatContain
     auto* p = book.getById(2);
     ASSERT_NE(p, nullptr);
     EXPECT_EQ(p->price, 10400);
-    EXPECT_EQ(p->quantity, 13); // 20 - 7
+    EXPECT_EQ(p->quantity, 13);  // 20 - 7
 
     // ensure the best level order untouched
     auto* p1 = book.getById(1);
@@ -836,7 +822,7 @@ TEST(OrderBookConsumeBestAskBySymbolTests, DoesNothing_WhenNoOrderForSymbolExist
     book.add(makeOrder(1, domain::Side::Sell, 10000, 10, domain::OrderType::Limit, "ABC", 1));
     book.add(makeOrder(2, domain::Side::Sell, 10100, 20, domain::OrderType::Limit, "DEF", 2));
 
-    book.consumeBestAsk(5, "XYZ"); // symbol not present
+    book.consumeBestAsk(5, "XYZ");  // symbol not present
 
     EXPECT_TRUE(book.isLive(1));
     EXPECT_TRUE(book.isLive(2));
@@ -858,7 +844,7 @@ TEST(OrderBookConsumeBestAskBySymbolTests, ConsumesFromBestAskLevelThatContainsS
     auto* p = book.getById(2);
     ASSERT_NE(p, nullptr);
     EXPECT_EQ(p->price, 10100);
-    EXPECT_EQ(p->quantity, 13); // 20 - 7
+    EXPECT_EQ(p->quantity, 13);  // 20 - 7
 
     // ensure best ask level order untouched
     auto* p1 = book.getById(1);

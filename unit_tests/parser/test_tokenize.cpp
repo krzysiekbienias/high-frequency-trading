@@ -70,8 +70,6 @@ TEST(TokenizeTests, HandlesNewlineCRLF_StripsAtEndOnly) {
     EXPECT_EQ(tokens[2], "C");
 }
 
-
-
 TEST(TokenizeTests, TypicalOrderLine_Produces8Tokens) {
     auto tokens = tokenize("N,2,00000002,XYZ,L,B,104.53,100");
     ASSERT_EQ(tokens.size(), 8u);

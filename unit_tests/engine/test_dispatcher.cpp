@@ -36,7 +36,7 @@ TEST(DispatcherTests, DispatchNew_DuplicateId_PrintsReject303) {
     CommandDispatcher dispatcher(book);
 
     ParsedCommand first = makeOrder(7);
-    ParsedCommand dup   = makeOrder(7); // same id
+    ParsedCommand dup = makeOrder(7);  // same id
 
     EXPECT_EQ(dispatcher.dispatch(first), "7 - Accept");
 

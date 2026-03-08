@@ -2,11 +2,11 @@
 
 #include <sstream>
 
-MatchHandler::MatchHandler(OrderBook &book)
+MatchHandler::MatchHandler(OrderBook& book)
     : m_book(book) {
 }
 
-MatchResponse MatchHandler::execute(const MatchRequest &req) {
+MatchResponse MatchHandler::execute(const MatchRequest& req) {
     MatchResponse response;
 
     // --- match only one symbol ---
@@ -14,17 +14,19 @@ MatchResponse MatchHandler::execute(const MatchRequest &req) {
         const std::string& sym = *req.symbol;
 
         while (true) {
-            auto* buyPtr  = m_book.bestBidOrder(sym);
+            auto* buyPtr = m_book.bestBidOrder(sym);
             auto* sellPtr = m_book.bestAskOrder(sym);
 
             // no liquidity for this symbol on one side
-            if (!buyPtr || !sellPtr) break;
+            if (!buyPtr || !sellPtr)
+                break;
 
             // no cross
-            if (buyPtr->price < sellPtr->price) break;
+            if (buyPtr->price < sellPtr->price)
+                break;
 
             const int matchedQuantity = std::min(buyPtr->quantity, sellPtr->quantity);
-            const domain::Price executionPrice = sellPtr->price; // you assumed sell/ask price
+            const domain::Price executionPrice = sellPtr->price;  // you assumed sell/ask price
 
             response.events.push_back(TradeEvent{
                 sym,
@@ -33,8 +35,7 @@ MatchResponse MatchHandler::execute(const MatchRequest &req) {
                 buyPtr->orderType,
                 sellPtr->orderType,
                 matchedQuantity,
-                executionPrice
-            });
+                executionPrice});
 
             m_book.consumeBestAsk(matchedQuantity, sym);
             m_book.consumeBestBid(matchedQuantity, sym);
@@ -45,12 +46,14 @@ MatchResponse MatchHandler::execute(const MatchRequest &req) {
 
     // --- match all symbols (global best bid/ask) ---
     while (m_book.hasBuy() && m_book.hasSell()) {
-        auto* buyPtr  = m_book.bestBidOrder();
+        auto* buyPtr = m_book.bestBidOrder();
         auto* sellPtr = m_book.bestAskOrder();
-        if (!buyPtr || !sellPtr) break; // defensive
+        if (!buyPtr || !sellPtr)
+            break;  // defensive
 
         // no cross
-        if (buyPtr->price < sellPtr->price) break;
+        if (buyPtr->price < sellPtr->price)
+            break;
 
         const int matchedQuantity = std::min(buyPtr->quantity, sellPtr->quantity);
         const domain::Price executionPrice = sellPtr->price;
@@ -62,8 +65,7 @@ MatchResponse MatchHandler::execute(const MatchRequest &req) {
             buyPtr->orderType,
             sellPtr->orderType,
             matchedQuantity,
-            executionPrice
-        });
+            executionPrice});
 
         m_book.consumeBestAsk(matchedQuantity);
         m_book.consumeBestBid(matchedQuantity);
@@ -72,23 +74,18 @@ MatchResponse MatchHandler::execute(const MatchRequest &req) {
     return response;
 }
 
-std::vector<std::string> MatchHandler::format(const MatchResponse &response) {
-
-
-
-
+std::vector<std::string> MatchHandler::format(const MatchResponse& response) {
     std::vector<std::string> out;
     std::string buyPart;
     std::string sellPart;
 
-
-    for (const auto &event: response.events) {
+    for (const auto& event : response.events) {
         std::ostringstream ossBuy;
         std::ostringstream ossSell;
         std::string temp;
-        ossBuy<<event.buyOrderId<<","<<domain::toChar(event.buyOrderType)<<","<<event.quantity<<","<<event.executionPrice;
-        ossSell<<event.executionPrice<<","<<event.quantity<<","<<domain::toChar(event.sellOrderType)<<","<<event.sellOrderId;
-        temp=event.symbol+"|"+ossBuy.str()+"|"+ossSell.str();
+        ossBuy << event.buyOrderId << "," << domain::toChar(event.buyOrderType) << "," << event.quantity << "," << event.executionPrice;
+        ossSell << event.executionPrice << "," << event.quantity << "," << domain::toChar(event.sellOrderType) << "," << event.sellOrderId;
+        temp = event.symbol + "|" + ossBuy.str() + "|" + ossSell.str();
         out.push_back(temp);
     }
 

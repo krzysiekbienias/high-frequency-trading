@@ -4,14 +4,14 @@
 #include <string_view>
 #include <variant>
 
-#include "engine/new.hpp"
 #include "engine/amend.hpp"
 #include "engine/cancel.hpp"
 #include "engine/match.hpp"
+#include "engine/new.hpp"
 
 // ParsedCommand = one of the supported requests
 using ParsedCommand = std::variant<
-    domain::Order, //for the new command we don't have a request because new introduce new object (order) and requires all fields
+    domain::Order,  // for the new command we don't have a request because new introduce new object (order) and requires all fields
     AmendRequest,
     CancelRequest,
     MatchRequest>;
